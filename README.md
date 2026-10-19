@@ -13,6 +13,8 @@ Run platform specific build commands below and run the generated executable.
 | validators | For validating URL |
 
 Install build dependencies with:
+`python -m pip install qrcode customtkinter Pillow nuitka requests pyperclip validators`
+or 
 `pip install qrcode customtkinter Pillow nuitka requests pyperclip validators`
 
 # Platform specific build commands
@@ -35,14 +37,26 @@ Change `YOUR_USER` to your actual username.
 Use Python 3.14 for building.
 
 ## MacOS
-`python -m nuitka --onefile --output-filename=QRL --macos-create-app-bundle --macos-icon-file=assets/python_sucks.icns --lto=yes --remove-output --enable-plugin=tk-inter main.py`
+### MacOS dependencies
+| Dependency | Purpose |
+|------------|---------|
+| pyobjc-framework-AppKit | For MacOS only clipboard |
+| pyobjc-framework-Foundation | For MacOS only data types |
 
-### Disclaimer 
-MacOS building and app functionalities have not been tested
+Install with
+`python -m pip install pyobjc-framework-AppKit pyobjc-framework-Foundation`
+
+### Build command
+`python -m nuitka --output-filename=QRL --mode=app --macos-app-icon=assets/python_sucks.icns --lto=yes --remove-output --enable-plugin=tk-inter main.py`
 
 # License
 Licensed under MIT
 
 # Changelog
+## v1.0.1
+- Fixed MacOS clipboard issues
+- Fixed MacOS build command
+- Added MacOS build
+
 ## v1.0
 - Initial release

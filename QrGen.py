@@ -333,24 +333,20 @@ class QrGen():
             win32clipboard.CloseClipboard()
 
     def CopyToMAC(self):
-        try:
-            from AppKit import NSPasteboard, NSFilenamesPboardType, NSBitmapImageRep
-            import Foundation
-            
-            buffer = io.BytesIO()
-            self.currentPilImage.save(buffer, format='PNG')
-            buffer.seek(0)
-            pngBytes = buffer.getvalue()
-            
-            pasteboard = NSPasteboard.generalPasteboard()
-            pasteboard.clearContents()
-            
-            # Create image rep from bytes
-            imageRep = NSBitmapImageRep.alloc().initWithData_(Foundation.NSData.new(pngBytes))
-            pasteboard.writeObjects_([imageRep])
-            
-        except ImportError:
-            raise Exception("Install pyobjc-framework-AppKit: pip install pyobjc-framework-AppKit")
+        from AppKit import NSPasteboard, NSImage
+
+        buffer = io.BytesIO()
+        self.currentPilImage.save(buffer, format="PNG")
+        pngBytes = buffer.getvalue()
+
+        nsimage = NSImage.alloc().initWithData_(pngBytes)
+        if nsimage is None or not nsimage.isValid():
+            raise RuntimeError("Could not build NSImage from PNG bytes")
+
+        pasteboard = NSPasteboard.generalPasteboard()
+        pasteboard.clearContents()
+        if not pasteboard.writeObjects_([nsimage]):
+            raise RuntimeError("Pasteboard refused the image")
 
     def CopyToLinux(self):
         import subprocess
