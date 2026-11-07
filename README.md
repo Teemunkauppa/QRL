@@ -45,7 +45,7 @@ python.exe -m pip install pywin32
 python.exe -m nuitka --onefile --output-filename=QRL.exe --windows-icon-from-ico=assets/python_sucks.ico --windows-console-mode=disable --tcl-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --tk-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --lto=yes --remove-output --enable-plugin=tk-inter --include-package-data=customtkinter --include-package-data=CTkColorPicker main.py
 ```
 
-Change `YOUR_USER` to your actual username in `--tk-library-dir=""`
+Change `YOUR_USER` to your actual username in `--tk-library-dir=""` and `--tk-library-dir=""`
 Use `Python 3.14` for building
 
 ## MacOS
