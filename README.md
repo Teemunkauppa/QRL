@@ -49,6 +49,9 @@ Change `YOUR_USER` to your actual username in `--tk-library-dir=""` and `--tk-li
 Use `Python 3.14` for building
 
 ## MacOS
+### Disclaimer
+MacOS builds are added if I can get/build them, otherwise build yourself
+
 ### MacOS dependencies
 | Dependency | Purpose |
 |------------|---------|
