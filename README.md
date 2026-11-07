@@ -7,19 +7,27 @@ Run platform specific build commands below and run the generated executable.
 | nuitka | For building |
 | qrcode | For generating the QR code |
 | customtkinter | For UI |
+| CTkColorPicker | For color picking |
 | Pillow | For image handling |
 | requests | For URL shortening |
 | pyperclip | For clipboard access |
 | validators | For validating URL |
+| cryptography | For data encryption |
 
 Install build dependencies with:
-`python -m pip install qrcode customtkinter Pillow nuitka requests pyperclip validators`
+```bash
+python -m pip install qrcode customtkinter Pillow nuitka requests pyperclip validators cryptography
+```
 or 
-`pip install qrcode customtkinter Pillow nuitka requests pyperclip validators`
+```bash
+pip install qrcode customtkinter Pillow nuitka requests pyperclip validators cryptography
+```
 
 # Platform specific build commands
 ## Linux
-`python -m nuitka --onefile --output-filename=QRL --linux-icon=assets/python_sucks.png --lto=yes --remove-output --enable-plugin=tk-inter main.py`
+```bash
+python -m nuitka --onefile --output-filename=QRL --linux-icon=assets/python_sucks.png --lto=yes --remove-output --enable-plugin=tk-inter --include-package-data=customtkinter --include-package-data=CTkColorPicker main.py
+```
 
 ## Windows
 ### Window dependencies
@@ -28,13 +36,17 @@ or
 | pywin32 | For win32clipboard and win32con |
 
 Install with 
-`python.exe -m pip install pywin32`
+```ps1
+python.exe -m pip install pywin32
+```
 
 ### Build command
-`python.exe -m nuitka --onefile --output-filename=QRL.exe --windows-icon-from-ico=assets/python_sucks.ico --windows-console-mode=disable --tcl-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --tk-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --lto=yes --remove-output --enable-plugin=tk-inter main.py`
+```ps1
+python.exe -m nuitka --onefile --output-filename=QRL.exe --windows-icon-from-ico=assets/python_sucks.ico --windows-console-mode=disable --tcl-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --tk-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --lto=yes --remove-output --enable-plugin=tk-inter --include-package-data=customtkinter --include-package-data=CTkColorPicker main.py
+```
 
-Change `YOUR_USER` to your actual username.
-Use Python 3.14 for building.
+Change `YOUR_USER` to your actual username in `--tk-library-dir=""`
+Use `Python 3.14` for building
 
 ## MacOS
 ### MacOS dependencies
@@ -44,15 +56,32 @@ Use Python 3.14 for building.
 | pyobjc-framework-Foundation | For MacOS only data types |
 
 Install with
-`python -m pip install pyobjc-framework-AppKit pyobjc-framework-Foundation`
+```bash
+python -m pip install pyobjc-framework-AppKit pyobjc-framework-Foundation
+```
 
 ### Build command
-`python -m nuitka --output-filename=QRL --mode=app --macos-app-icon=assets/python_sucks.icns --lto=yes --remove-output --enable-plugin=tk-inter main.py`
+```bash
+python -m nuitka --output-filename=QRL --mode=app --macos-app-icon=assets/python_sucks.icns --lto=yes --remove-output --enable-plugin=tk-inter --include-package-data=customtkinter --include-package-data=CTkColorPicker main.py
+```
 
 # License
 Licensed under MIT
 
+## AI Usage
+AI was used to help with research, syntax and platform specific code. This is not fully vibe-coded AI slop app.
+
 # Changelog
+## v1.1.0
+- Added Settings tab with customizable colors for the whole UI
+- Added encrypted local settings storage (`QRL.data`)
+- Added option to choose the default startup tab
+- Added option to enable advanced QR settings by default
+- Refactored widget creation into a shared Helpers module
+- Settings changes now rebuild the UI after 1s without restarting
+- Updated build commands to bundle package data for customtkinter and CTkColorPicker
+- Changed Qr code generation debounce timer to tkintern's built-in timer from Threading
+
 ## v1.0.1
 - Fixed MacOS clipboard issues
 - Fixed MacOS build command

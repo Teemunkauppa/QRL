@@ -1,6 +1,7 @@
+import Helpers
 import requests
-import validators
 import pyperclip
+import validators
 import customtkinter as ct
 
 class UrlShortener():
@@ -26,9 +27,9 @@ class UrlShortener():
 
     def __init__(self, tabview: ct.CTkTabview, name: str, size: tuple[int]):
         self.tab = tabview.add(name)
+        self.name = name
         self.DrawUI(size)
         self.SetOptions()
-        self.name = name
 
     def DrawUI(self, size: tuple[int]):
         self.inputTextVar = ct.StringVar()
@@ -39,50 +40,49 @@ class UrlShortener():
         self.tab.rowconfigure(1, weight=1)
 
         # Title
-        title = ct.CTkLabel(master=self.tab, text=self.name, font=("ArialBold", 20))
+        title = Helpers.GenerateTitle(master=self.tab, text=self.name, font=("ArialBold", 20))
         title.grid(row=0, column=0, columnspan=2, pady=(5, 5))
 
         # Left panel
-        left = ct.CTkFrame(self.tab)
+        left = Helpers.GenerateFrame(self.tab)
         left.grid(row=1, column=0, padx=(10, 10), pady=(10, 10), sticky="nsew")
         left.grid_columnconfigure(0, weight=1)
 
         # Options title
-        leftTitle = ct.CTkLabel(master=left, text="Options", font=("Arial", 18))
+        leftTitle = Helpers.GenerateTitle(master=left, text="Options", font=("Arial", 18))
         leftTitle.pack(pady=(5, 0), anchor="nw")
 
         # Input for shortener
-        self.textInput = ct.CTkEntry(master=left, placeholder_text="Enter URL...", width=(size[0] / 2) - 50, height=30, textvariable=self.inputTextVar)
+        self.textInput = Helpers.GenerateEntry(master=left, placeholder_text="Enter URL...", width=int((size[0] / 2) - 50), height=30, textvariable=self.inputTextVar)
         self.textInput.pack(pady=(0, 0), anchor="nw")
         self.textInput.bind("<Return>", self.EventEnterPressed)
 
         # Generate button
-        self.shortenUrlButton = ct.CTkButton(master=left, text="Shorten URL", command=self.EventShortenURL)
-        self.shortenUrlButton.pack(pady=(10, 0), anchor="nw")
-        
-        # Shortener provider
-        self.providerDropdown = ct.CTkComboBox(master=left, values=self.providerOptions, command=self.EventProviderDropdown)
-        self.providerDropdown.pack(pady=(10, 0), anchor="nw")
+        self.shortenUrlButton = Helpers.GenerateButton(master=left, text="Shorten URL", command=self.EventShortenURL)
+        self.shortenUrlButton.pack(pady=(10, 10), anchor="nw")
+
+        # Shortened provider dropdown
+        self.providerDropdown = Helpers.GenerateDropdown(left, "Provider", self.providerOptions, self.providerOptions[0], self.EventProviderDropdown)
 
         # Right panel
-        self.right = ct.CTkFrame(self.tab)
+        self.right = Helpers.GenerateFrame(self.tab)
         self.right.grid(row=1, column=1, padx=(10, 10), pady=(10, 10), sticky="nsew")
         self.right.grid_columnconfigure(0, weight=1)
 
         # Preview title
-        previewTitle = ct.CTkLabel(master=self.right, text="Preview", font=("Arial", 18))
+        previewTitle = Helpers.GenerateTitle(master=self.right, text="Preview", font=("Arial", 18))
         previewTitle.pack(pady=(10, 10), anchor="n")
 
         # Preview link
-        self.previewLink = ct.CTkLabel(master=self.right, text="Shorten URL to see it here...", font=("Arial", 16))
+        self.previewLink = Helpers.GenerateTitle(master=self.right, text="Shorten URL to see it here...", font=("Arial", 16))
         self.previewLink.pack(pady=(5, 0), anchor="n")
 
         # Copy to clipboard button
-        cpToCpButton = ct.CTkButton(master=self.right, text="Copy to clipboard", command=self.EventCopyToClipboard, width=150)
+        cpToCpButton = Helpers.GenerateButton(master=self.right, text="Copy to clipboard", command=self.EventCopyToClipboard, width=150)
         cpToCpButton.pack(pady=(10, 0), anchor="n")
 
         # Message text
-        self.messageText = ct.CTkLabel(master=self.right, text="", font=("Arial", 16), justify="left", wraplength=350)
+        self.messageText = Helpers.GenerateTitle(master=self.right, text="", font=("Arial", 16), justify="left", wraplength=350)
         self.messageText.pack(pady=(5, 0), anchor="n")
 
     def EventEnterPressed(self, *args):

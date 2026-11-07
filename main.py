@@ -1,14 +1,44 @@
 import sys
-from PIL import Image, ImageTk
-import customtkinter as ct
+import SaveSystem
 from QrGen import QrGen
+import customtkinter as ct
+from Settings import Settings
+from PIL import Image, ImageTk
 from UrlShortener import UrlShortener as Url
 
 APP_NAME = "QRL"
 APP_SIZE = (900, 600)
 APP_RESISABLE = False
 
+tabview: ct.CTkTabview = None
+qrGenTab: QrGen = None
+urlTab: Url = None
+settingsTab: Settings = None
+
+def RebuildUI():
+    global tabview, settingsTab
+    for tabName in list(tabview._tab_dict.keys()):
+        tabview.delete(tabName)
+    GenerateTabs()
+    settingsTab.Focus(tabview)
+    
+def FocusDefaultTab():
+    global qrGenTab, urlTab, settingsTab, tabview
+    if(SaveSystem.GetSettings().defaultTab == SaveSystem.Tabs.QrGen):
+        qrGenTab.Focus(tabview)
+    elif(SaveSystem.GetSettings().defaultTab == SaveSystem.Tabs.UrlShortener):
+        urlTab.Focus(tabview)
+    elif(SaveSystem.GetSettings().defaultTab == SaveSystem.Tabs.Settings):
+        settingsTab.Focus(tabview)
+
+def GenerateTabs():
+    global qrGenTab, urlTab, settingsTab, tabview
+    qrGenTab = QrGen(tabview, "QR-Code Generator", APP_SIZE)
+    urlTab = Url(tabview, "URL shortener", APP_SIZE)
+    settingsTab = Settings(tabview, "Settings", APP_SIZE)
+
 def main():
+    global tabview, urlTab, qrGenTab, settingsTab
     app = ct.CTk()
 
     app.title(APP_NAME)
@@ -26,11 +56,14 @@ def main():
     tabview = ct.CTkTabview(master=app, anchor="n")
     tabview.pack(padx=0, pady=0, fill="both", expand=True)
 
-    qrGenTab = QrGen(tabview, "QR-Code Generator", APP_SIZE)
+    SaveSystem.SetRebuildCallback(RebuildUI)
+    SaveSystem.SetMainRoot(app)
+    SaveSystem.InitSaveSystem()
+    SaveSystem.settings = SaveSystem.LoadSettings()
 
-    urlTab = Url(tabview, "URL shortener", APP_SIZE)
+    GenerateTabs()
 
-    qrGenTab.Focus(tabview)
+    FocusDefaultTab()
 
     app.mainloop()
 

@@ -2,9 +2,10 @@ import os
 import io
 import sys
 import qrcode
-import threading
-import customtkinter as ct
+import Helpers
+import SaveSystem
 import tkinter as tk
+import customtkinter as ct
 from tkinter import filedialog
 from tkinter.font import Font
 from PIL import Image, ImageTk
@@ -12,7 +13,6 @@ from PIL import Image, ImageTk
 # NOTES: If further data mode (numeric/alphabetical/binary/kanji) is needed then switch qrcode to segno
 
 class QrGen():
-    ENABLE_ADV_BY_DEFAULT = False
     ENABLE_LIVE_PREVIEW_BY_DEFAULT = True
     DEBOUNCE_DELAY_MS = 500
     PREVIEW_SIZE = 300
@@ -42,7 +42,7 @@ class QrGen():
     displayedImage: ImageTk = None
 
     inputTextVar: ct.StringVar = None
-    updateTimer: threading.Timer = None
+    updateJob: str = None
 
     ecOptions = ["Auto", "Level L (~7%)", "Level M (~15%)", "Level Q (~25%)", "Level H (~30%)"]
 
@@ -55,11 +55,11 @@ class QrGen():
 
     def __init__(self, tabview: ct.CTkTabview, name: str, size: tuple[int]):
         self.tab = tabview.add(name)
+        self.name = name
         self.InitTimer()
         self.DrawUI(size)
         self.SetOptions()
-        self.ShowAdvanced(self.ENABLE_ADV_BY_DEFAULT)
-        self.name = name
+        self.ShowAdvanced(SaveSystem.GetSettings().enableAdv)
 
     def InitTimer(self):
         self.inputTextVar = ct.StringVar()
@@ -72,92 +72,87 @@ class QrGen():
         self.tab.rowconfigure(1, weight=1)
 
         # Title
-        title = ct.CTkLabel(master=self.tab, text=self.name, font=("ArialBold", 20))
+        title = Helpers.GenerateTitle(master=self.tab, text=self.name, font=("ArialBold", 20)) 
         title.grid(row=0, column=0, columnspan=2, pady=(5, 5))
 
         # Left panel
-        left = ct.CTkFrame(self.tab)
+        left = Helpers.GenerateFrame(self.tab)
         left.grid(row=1, column=0, padx=(10, 10), pady=(10, 10), sticky="nsew")
         left.grid_columnconfigure(0, weight=1)
 
         # Options title
-        leftTitle = ct.CTkLabel(master=left, text="Options", font=("Arial", 18))
+        leftTitle = Helpers.GenerateTitle(master=left, text="Options", font=("Arial", 18))
         leftTitle.pack(pady=(5, 0), anchor="nw")
 
         # Input for QR
-        self.textInput = ct.CTkEntry(master=left, placeholder_text="Enter text...", width=(size[0] / 2) - 50, height=30, textvariable=self.inputTextVar)
+        self.textInput = Helpers.GenerateEntry(master=left, placeholder_text="Enter text...", width=int((size[0] / 2) - 50), height=30, textvariable=self.inputTextVar)
         self.textInput.pack(pady=(0, 0), anchor="nw")
         self.textInput.bind("<Return>", self.EventEnterPressed)
 
         # Live preview toggle
-        self.livePreviewToggle = ct.CTkCheckBox(master=left, text="Live preview", font=("Arial", 16), command=self.EventLivePreview)
+        self.livePreviewToggle = Helpers.GenerateCheckbox(master=left, text="Live preview", font=("Arial", 16), command=self.EventLivePreview)
         self.livePreviewToggle.pack(pady=(10, 0), anchor="nw")
 
         # Generate button
-        self.generateCodeButton = ct.CTkButton(master=left, text="Generate QR-Code", command=self.GenerateCode)
+        self.generateCodeButton = Helpers.GenerateButton(master=left, text="Generate QR-Code", command=self.GenerateCode)
         self.generateCodeButton.pack(pady=(10, 0), anchor="nw")
 
         # Advaced options toggle
-        self.advancedOptionsToggle = ct.CTkCheckBox(master=left, text="Advanced options", font=("Arial", 16), command=self.EventAdvancedOptions)
+        self.advancedOptionsToggle = Helpers.GenerateCheckbox(master=left, text="Advanced options", font=("Arial", 16), checked=SaveSystem.GetSettings().enableAdv, command=self.EventAdvancedOptions)
         self.advancedOptionsToggle.pack(pady=(10, 0), anchor="nw")
 
         # Version slider
-        versionSliderTuple = self.CreateSlider(left, 0, 40, "Version: ", self.EventSliderVersion)
+        versionSliderTuple = Helpers.CreateSlider(left, 0, 40, "Version: ", self.EventSliderVersion)
         self.versionSlider = versionSliderTuple[0]
         self.versionSliderValue = versionSliderTuple[1]
 
-        # Error correction title
-        ecTitle = ct.CTkLabel(master=left, text="Error correction level", font=("Arial", 16))
-        ecTitle.pack(pady=(10, 0), anchor="nw")
-
-        # Error correction dropdown
-        self.ecDropdown = ct.CTkComboBox(master=left, values=self.ecOptions, command=self.EventEcDropdown)
-        self.ecDropdown.pack(pady=(5, 0), anchor="nw")
+        # Error correcton dropdown
+        self.ecDropdown = Helpers.GenerateDropdown(left, "Error correction level", self.ecOptions, self.ecOptions[0], self.EventEcDropdown)
 
         # Mask slider
-        maskSliderTuple = self.CreateSlider(left, 0, 8, "Mask: ", self.EventSliderMask)
+        maskSliderTuple = Helpers.CreateSlider(left, 0, 8, "Mask: ", self.EventSliderMask)
         self.maskSlider = maskSliderTuple[0]
         self.maskSliderValue = maskSliderTuple[1]
 
         # Block size slider
-        blockSizeSliderTuple = self.CreateSlider(left, 1, 50, "Block size (px):", self.EventSliderBlockSize)
+        blockSizeSliderTuple = Helpers.CreateSlider(left, 1, 50, "Block size (px):", self.EventSliderBlockSize)
         self.blockSizeSlider = blockSizeSliderTuple[0]
         self.blockSizeSliderValue = blockSizeSliderTuple[1]
 
         # Border slider
-        borderSliderTuple = self.CreateSlider(left, 4, 20, "Border (px):", self.EventSliderBorder)
+        borderSliderTuple = Helpers.CreateSlider(left, 4, 20, "Border (px):", self.EventSliderBorder)
         self.borderSlider = borderSliderTuple[0]
         self.borderSliderValue = borderSliderTuple[1]
 
         # Right panel
-        self.right = ct.CTkFrame(self.tab)
+        self.right = Helpers.GenerateFrame(self.tab)
         self.right.grid(row=1, column=1, padx=(10, 10), pady=(10, 10), sticky="nsew")
         self.right.grid_columnconfigure(0, weight=1)
 
-        # Preview tile
-        previewTitle = ct.CTkLabel(master=self.right, text="Preview", font=("Arial", 18))
+        # Preview title
+        previewTitle = Helpers.GenerateTitle(master=self.right, text="Preview", font=("Arial", 18))
         previewTitle.pack(pady=(10, 10), anchor="n")
 
         # Canvas for image
-        self.qrCanvas = ct.CTkCanvas(master=self.right, width=self.PREVIEW_SIZE, height=self.PREVIEW_SIZE)
+        self.qrCanvas = Helpers.GenerateCanvas(master=self.right, width=self.PREVIEW_SIZE, height=self.PREVIEW_SIZE)
         self.qrCanvas.pack(padx=(10, 10), pady=(10, 10))
 
         # Buttons row
-        buttonRow: ct.CTkFrame = ct.CTkFrame(master=self.right, fg_color="transparent")
+        buttonRow: ct.CTkFrame = Helpers.GenerateFrame(self.right, transparent=True)
         buttonRow.pack(fill="x", pady=(15, 5))
         buttonRow.grid_columnconfigure(0, weight=1)
         buttonRow.grid_columnconfigure(1, weight=1)
 
         # Button for saving the qr
-        saveButton = ct.CTkButton(master=buttonRow, text="Save as file", command=self.EventSaveCode, width=150)
+        saveButton = Helpers.GenerateButton(master=buttonRow, text="Save as file", command=self.EventSaveCode, width=150)
         saveButton.grid(row=0, column=0, padx=(0, 5), sticky="nsew")
 
         # Button for copying to clipboard
-        cpToCpButton = ct.CTkButton(master=buttonRow, text="Copy to clipboard", command=self.EventCopyToClipboard, width=150)
+        cpToCpButton = Helpers.GenerateButton(master=buttonRow, text="Copy to clipboard", command=self.EventCopyToClipboard, width=150)
         cpToCpButton.grid(row=0, column=1, padx=(5, 0), sticky="nsew")
 
         # Label for error messages
-        self.errorText = ct.CTkLabel(master=self.right, text="", font=("Arial", 12), text_color="red", justify="left", wraplength=350)
+        self.errorText = Helpers.GenerateTitle(master=self.right, text="", font=("Arial", 12), text_color="red", justify="left", wraplength=350)
         self.errorText.pack(pady=(0, 0), anchor="nw")
 
     def EventEnterPressed(self, *args):
@@ -241,7 +236,6 @@ class QrGen():
     def SetOptions(self):
         self.inputTextVar.trace_add('write', self.OnTextChangedEvent)
 
-        self.advancedOptionsToggle.set(self.ENABLE_ADV_BY_DEFAULT)
         self.livePreviewToggle.set(self.ENABLE_LIVE_PREVIEW_BY_DEFAULT)
 
         self.EventLivePreview()
@@ -374,15 +368,10 @@ class QrGen():
 
         self.QueueQrGeneration()
 
-    def QueueQrGeneration(self, *args):
-        # Cancel pending timer
-        if self.updateTimer and self.updateTimer.is_alive():
-            self.updateTimer.cancel()
-
-        # Start ner timer
-        self.updateTimer = threading.Timer(self.DEBOUNCE_DELAY_MS / 1000, self.GenerateCode)
-        self.updateTimer.daemon = True
-        self.updateTimer.start()
+    def QueueQrGeneration(self):
+        if self.updateJob is not None:
+            self.tab.after_cancel(self.updateJob)
+        self.updateJob = self.tab.after(self.DEBOUNCE_DELAY_MS, self.GenerateCode)
 
     def EventSliderBlockSize(self, value: int):
         self.selBlockSize = value
@@ -409,9 +398,10 @@ class QrGen():
 
         if(not self.livePreview):
             self.generateCodeButton.configure(state=tk.NORMAL)
-            self.QueueQrGeneration()
         else:
             self.generateCodeButton.configure(state=tk.DISABLED)
+
+        self.QueueQrGeneration()
 
     def EventSliderVersion(self, value: int):
         self.selLevel = int(value)
@@ -433,37 +423,3 @@ class QrGen():
 
     def Focus(self, tabview: ct.CTkTabview):
         tabview.set(self.name)
-
-    def CreateSlider(self, master: ct.CTkFrame, min: int, max: int, titleText: str, eventFunc: function) -> tuple[ct.CTkSlider, ct.CTkLabel]:
-        sliderTitle: ct.CTkLabel = None
-        slider: ct.CTkSlider = None
-        sliderValue: ct.CTkLabel = None
-
-        # Slider row
-        row = ct.CTkFrame(master, fg_color="transparent")
-        row.pack(fill="x", pady=(15, 5))
-        row.grid_columnconfigure(1, weight=1)
-        
-        # Slider title
-        sliderTitle = ct.CTkLabel(master=row, text=titleText, font=("Arial", 14))
-        sliderTitle.grid(row=0, column=0, padx=(0, 0), sticky="w")
-
-        # Calculate padding with title width
-        titleWidth = sliderTitle.winfo_reqwidth()
-        tkFont: Font = Font(family="Arial", size=14)
-        textWidth = tkFont.measure(titleText)
-        sliderPadding = titleWidth + textWidth
-
-        # Slider
-        slider = ct.CTkSlider(master=row, from_=min, to=max, height=20, number_of_steps=max, command=eventFunc)
-        slider.grid(row=0, column=0, padx=(sliderPadding), sticky="w")
-
-        # Padding for slider value
-        sliderWidth = slider.winfo_reqwidth()
-        sliderValPadding = sliderPadding + sliderWidth + 5
-
-        # Slider value
-        sliderValue = ct.CTkLabel(master=row, text="", font=("Arial", 14))
-        sliderValue.grid(row=0, column=0, padx=(sliderValPadding, 0), sticky="w")
-
-        return (slider, sliderValue)
