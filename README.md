@@ -1,5 +1,5 @@
 # How to build and run
-Run platform specific build commands below and run the generated executable. 
+Run platform specific build commands below and run the generated executable. The generated executable needs `assets/` with the files inside in same folder in order to work correctly. 
 
 # Build dependencies
 | Dependency | Purpose |
