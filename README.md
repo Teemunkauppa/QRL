@@ -1,3 +1,14 @@
+# QRL
+With QRL you can generate qr-codes with specified settings or shorten URLs with specified provider. QRL is built with only python and it is cross-platform. You can either download pre-built binaries or build them yourself from source ([How to build and run](#how-to-build-and-run)). 
+
+# Some pictures of QRL
+<div>
+  <img src="docs/imgs/QRL_QrGen.png" alt="Image of QRL QR-code generation tab" width="360">
+  <img src="docs/imgs/QRL_UrlShortener.png" alt="Image of QRL URL shortening tab" width="360">
+  <img src="docs/imgs/QRL_Settings.png" alt="Image of QRL Settings tab" width="360">
+  <img src="docs/imgs/QRL_QrGen_WithQR.png" alt="Image of QRL QR-code generation tab with QR code" width="360">
+</div>
+
 # How to build and run
 Run platform specific build commands below and run the generated executable. The generated executable needs `assets/` with the files inside in same folder in order to work correctly. 
 
@@ -45,12 +56,12 @@ python.exe -m pip install pywin32
 python.exe -m nuitka --onefile --output-filename=QRL.exe --windows-icon-from-ico=assets/python_sucks.ico --windows-console-mode=disable --tcl-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --tk-library-dir="C:\Users\YOUR_USER\AppData\Local\Programs\Python\Python314\tcl" --lto=yes --remove-output --enable-plugin=tk-inter --include-package-data=customtkinter --include-package-data=CTkColorPicker main.py
 ```
 
-Change `YOUR_USER` to your actual username in `--tk-library-dir=""` and `--tk-library-dir=""`
+Change `YOUR_USER` to your actual username in `--tk-library-dir=""`
 Use `Python 3.14` for building
 
 ## MacOS
 ### Disclaimer
-MacOS builds are added if I can get/build them, otherwise build yourself
+MacOS builds are added if I can get/build them, otherwise build the app yourself
 
 ### MacOS dependencies
 | Dependency | Purpose |
@@ -71,7 +82,7 @@ python -m nuitka --output-filename=QRL --mode=app --macos-app-icon=assets/python
 # License
 Licensed under MIT
 
-## AI Usage
+# AI Usage
 AI was used to help with research, syntax and platform specific code. This is not fully vibe-coded AI slop app.
 
 # Changelog
